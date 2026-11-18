@@ -42,6 +42,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.45rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, #2dd4bf, #22d3ee);
   color: #042f2e;
@@ -88,20 +89,160 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.04);
-  color: #64748b;
+  color: #94a3b8;
   font-weight: 600;
   font-size: 0.95rem;
   padding: 0.8rem 1.4rem;
-  border: 1px dashed rgba(148, 163, 184, 0.35);
+  border: 1px dashed rgba(148, 163, 184, 0.4);
   cursor: not-allowed;
+  position: relative;
+}
+
+.pay-stub {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85), rgba(8, 47, 53, 0.35));
+  border-radius: 1.25rem;
+  padding: 1.15rem 1.25rem;
+}
+
+.pay-stub-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+}
+
+.wizard-option {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1rem 1.15rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, transform 160ms ease,
+    box-shadow 180ms ease;
+}
+
+.wizard-option:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.wizard-option:focus-visible {
+  outline: 2px solid rgba(103, 232, 249, 0.7);
+  outline-offset: 2px;
+}
+
+.wizard-option.is-selected {
+  border-color: rgba(103, 232, 249, 0.65);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.22), 0 12px 28px rgba(8, 145, 178, 0.12);
+  transform: translateY(-1px);
+}
+
+.wizard-option-index {
+  display: inline-flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.75rem;
+}
+
+.wizard-option.is-selected .wizard-option-index {
+  border-color: rgba(103, 232, 249, 0.7);
+  background: rgba(103, 232, 249, 0.2);
+  color: #ecfeff;
+}
+
+.step-dot {
+  height: 0.45rem;
+  width: 0.45rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: width 220ms ease, background 220ms ease;
+}
+
+.step-dot.is-done {
+  background: rgba(45, 212, 191, 0.85);
+}
+
+.step-dot.is-current {
+  width: 1.35rem;
+  background: linear-gradient(90deg, #2dd4bf, #22d3ee);
+}
+
+.progress-track {
+  height: 0.2rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #2dd4bf, #67e8f9);
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.checklist-item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.checklist-item input[type="checkbox"] {
+  accent-color: #22d3ee;
+}
+
+.kbd-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.kbd-hint kbd {
+  display: inline-flex;
+  min-width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.1rem 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  color: #cbd5e1;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -109,24 +250,125 @@ body {
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .animate-rise {
-  animation: rise 420ms ease-out both;
+  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade {
+  animation: fade-in 280ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-fade,
+  .progress-fill,
+  .step-dot,
+  .wizard-option {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 @media print {
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in;
+  }
+
+  html,
   body {
-    background: white !important;
+    background: #fff !important;
     color: #0f172a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .print-hidden,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
   }
 
   .print-sheet {
     border: none !important;
-    background: white !important;
+    background: #fff !important;
     box-shadow: none !important;
     padding: 0 !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
   }
 
-  .print\:hidden {
-    display: none !important;
+  .print-sheet h2,
+  .print-sheet h3,
+  .print-sheet .print-ink {
+    color: #0f172a !important;
   }
+
+  .print-sheet .print-muted {
+    color: #475569 !important;
+  }
+
+  .print-sheet .print-accent {
+    color: #0f766e !important;
+  }
+
+  .print-chip {
+    border: 1px solid #99f6e4 !important;
+    background: #f0fdfa !important;
+    color: #115e59 !important;
+  }
+
+  .checklist-item label {
+    border: none !important;
+    background: transparent !important;
+    padding: 0.15rem 0 !important;
+  }
+
+  .checklist-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.2rem;
+    border: 1.5px solid #334155;
+    border-radius: 0.15rem;
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .checklist-item input[type="checkbox"]:checked {
+    background: #0f766e;
+    border-color: #0f766e;
+  }
+
+  .print-footer {
+    display: block !important;
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+}
+
+.print-only {
+  display: none;
 }
