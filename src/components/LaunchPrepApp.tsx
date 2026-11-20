@@ -193,7 +193,7 @@ export default function LaunchPrepApp() {
     window.print();
   }
 
-  function onPayStubClick() {
+  function onWaitlistClick() {
     setPayNotice(true);
   }
 
@@ -234,9 +234,9 @@ export default function LaunchPrepApp() {
         <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-6 pb-16 pt-10 sm:px-10">
           <header className="flex items-center justify-between">
             <p className="font-display text-sm tracking-[0.22em] text-cyan-200/90 uppercase">
-              Launch Prep Kit
+              NeonGulf
             </p>
-            <p className="text-xs text-slate-400">by Hamza Akram</p>
+            <p className="text-xs text-slate-400">Launch Prep Kit</p>
           </header>
 
           <section className="mt-auto flex flex-1 flex-col justify-center gap-8 py-16 sm:max-w-xl">
@@ -247,7 +247,7 @@ export default function LaunchPrepApp() {
             </h1>
             <p className="max-w-md text-lg leading-relaxed text-slate-300">
               Answer five quick questions. Get a personalized console launch
-              checklist you can print as a PDF.
+              checklist you can print as a PDF — from NeonGulf.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <button
@@ -281,8 +281,9 @@ export default function LaunchPrepApp() {
           </section>
 
           <footer className="mt-auto border-t border-white/10 pt-6 text-xs leading-relaxed text-slate-500">
-            Independent fan utility. Not affiliated with Rockstar Games, Take-Two,
-            Sony, or Microsoft. No official game assets. Console-only launch prep.
+            A NeonGulf product. Independent fan utility — not affiliated with Rockstar
+            Games, Take-Two, Sony, or Microsoft. No official game assets. Console-only
+            launch prep.
           </footer>
         </div>
       </main>
@@ -300,7 +301,7 @@ export default function LaunchPrepApp() {
         <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10 sm:px-10">
           <header className="mb-8 flex items-center justify-between gap-4">
             <p className="font-display text-sm tracking-[0.22em] text-cyan-200/90 uppercase">
-              Launch Prep Kit
+              NeonGulf · Prep
             </p>
             <p className="text-sm text-slate-400" aria-live="polite">
               Step {stepIndex + 1} / {STEPS.length}
@@ -406,7 +407,7 @@ export default function LaunchPrepApp() {
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-10 sm:px-10">
         <header className="mb-8 flex flex-wrap items-center justify-between gap-4 print-hidden">
           <p className="font-display text-sm tracking-[0.22em] text-cyan-200/90 uppercase">
-            Launch Prep Kit
+            NeonGulf · Prep
           </p>
           <button type="button" onClick={restart} className="btn-ghost text-sm">
             Start over
@@ -416,7 +417,7 @@ export default function LaunchPrepApp() {
         <div className="print-sheet rounded-3xl border border-white/10 bg-[#071018]/90 p-6 shadow-2xl backdrop-blur-md sm:p-10">
           <div className="border-b border-white/10 pb-6">
             <div className="print-only mb-3 text-xs tracking-[0.16em] text-teal-800 uppercase">
-              Launch Prep Kit · printed {printedOn}
+              NeonGulf Launch Prep Kit · printed {printedOn}
             </div>
             <p className="font-display print-accent text-xs tracking-[0.2em] text-cyan-200/80 uppercase">
               Your personalized checklist
@@ -498,8 +499,8 @@ export default function LaunchPrepApp() {
           </div>
 
           <div className="print-footer print-only">
-            Independent fan utility · Not affiliated with Rockstar, Take-Two, Sony, or
-            Microsoft · launch-prep-kit.vercel.app
+            NeonGulf · Independent fan utility · Not affiliated with Rockstar, Take-Two,
+            Sony, or Microsoft · prep.neongulf.com
           </div>
 
           <div className="mt-10 space-y-4 border-t border-white/10 pt-6 print-hidden">
@@ -509,38 +510,40 @@ export default function LaunchPrepApp() {
               </button>
               <button
                 type="button"
-                onClick={onPayStubClick}
+                onClick={onWaitlistClick}
                 aria-disabled="true"
                 className="btn-locked"
-                title="Checkout not wired yet — payments coming soon"
+                title="Pro checkout opens soon — join the waitlist"
               >
                 <span
                   aria-hidden
                   className="inline-block h-3.5 w-3.5 rounded-sm border border-slate-500 bg-slate-700/80"
                 />
-                Unlock PDF — {PDF_PRICE}
+                Join waitlist — {PDF_PRICE}
               </button>
             </div>
 
             <div className="pay-stub animate-fade">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="pay-stub-badge">Coming soon</span>
+                <span className="pay-stub-badge">Opens soon</span>
                 <p className="text-sm font-medium text-slate-200">
-                  Paid unlock stub · {PDF_PRICE} one-time
+                  Pro PDF unlock · {PDF_PRICE} one-time
                 </p>
               </div>
               <ul className="mt-3 space-y-1.5 text-sm text-slate-400">
-                <li>• Branded PDF download (no browser print dialog)</li>
+                <li>• Branded NeonGulf PDF download (no browser print dialog)</li>
                 <li>• Email delivery + re-download link</li>
-                <li>• Stripe / Lemon Squeezy checkout (not connected yet)</li>
+                <li>• Secure checkout when Pro opens</li>
               </ul>
               <p className="mt-3 text-xs text-slate-500">
-                Free path works now: use <strong className="font-medium text-slate-400">Print / Save as PDF</strong>{" "}
-                in your browser. The unlock button is intentionally disabled until payments ship.
+                Free checklist is ready now: use{" "}
+                <strong className="font-medium text-slate-400">Print / Save as PDF</strong>{" "}
+                in your browser. Pro checkout opens soon — join the waitlist above.
               </p>
               {payNotice ? (
                 <p className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-100" role="status">
-                  Payments are not live yet. Use Print / Save as PDF for the free checklist export.
+                  Pro checkout isn&apos;t live yet. You&apos;re on the interest list —
+                  use Print / Save as PDF for your free checklist export today.
                 </p>
               ) : null}
             </div>
@@ -548,8 +551,8 @@ export default function LaunchPrepApp() {
         </div>
 
         <footer className="mt-10 border-t border-white/10 pt-6 text-xs leading-relaxed text-slate-500 print-hidden">
-          Independent fan utility. Not affiliated with Rockstar Games, Take-Two, Sony,
-          or Microsoft. No official game assets.
+          A NeonGulf product. Independent fan utility — not affiliated with Rockstar
+          Games, Take-Two, Sony, or Microsoft. No official game assets.
         </footer>
       </div>
     </main>

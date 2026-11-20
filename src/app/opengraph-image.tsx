@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Launch Prep Kit — Personalized console launch checklist";
+export const alt =
+  "NeonGulf Launch Prep Kit — Personalized console launch checklist";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -29,7 +30,7 @@ export default function OpenGraphImage() {
             color: "#a5f3fc",
           }}
         >
-          Launch Prep Kit
+          NeonGulf · Launch Prep Kit
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div
@@ -66,7 +67,7 @@ export default function OpenGraphImage() {
           }}
         >
           <span>Free checklist · Print / Save as PDF</span>
-          <span>launch-prep-kit.vercel.app</span>
+          <span>prep.neongulf.com</span>
         </div>
       </div>
     ),

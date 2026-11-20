@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, Syne } from "next/font/google";
 import "./globals.css";
 
-const SITE_URL = "https://launch-prep-kit.vercel.app";
+const SITE_URL = "https://prep.neongulf.com";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -19,15 +19,17 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Launch Prep Kit — Personalized console launch checklist",
-    template: "%s · Launch Prep Kit",
+    default: "Launch Prep Kit — Personalized console launch checklist | NeonGulf",
+    template: "%s · NeonGulf Launch Prep Kit",
   },
   description:
-    "Answer five quick questions and get a printable, personalized console launch checklist. Free browser checklist + PDF print. Independent fan utility — no official game assets.",
-  applicationName: "Launch Prep Kit",
-  authors: [{ name: "Hamza Akram" }],
-  creator: "Hamza Akram",
+    "Answer five quick questions and get a printable, personalized console launch checklist from NeonGulf. Free browser checklist + PDF print. Independent fan utility — no official game assets.",
+  applicationName: "NeonGulf Launch Prep Kit",
+  authors: [{ name: "NeonGulf" }],
+  creator: "NeonGulf",
+  publisher: "NeonGulf",
   keywords: [
+    "NeonGulf",
     "console launch checklist",
     "PS5 launch prep",
     "Xbox Series launch prep",
@@ -41,15 +43,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Launch Prep Kit",
+    siteName: "NeonGulf Launch Prep Kit",
     title: "Launch Prep Kit — Personalized console launch checklist",
     description:
-      "Five questions. One printable checklist tailored to your console, storage, audio, friends, and midnight plan.",
+      "Five questions. One printable checklist tailored to your console, storage, audio, friends, and midnight plan. From NeonGulf.",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Launch Prep Kit — Personalized console launch checklist",
+    title: "Launch Prep Kit — Personalized console launch checklist | NeonGulf",
     description:
       "Five questions. One printable checklist tailored to your console night.",
   },
@@ -79,10 +81,10 @@ export const viewport: Viewport = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Launch Prep Kit",
+  name: "NeonGulf Launch Prep Kit",
   url: SITE_URL,
   description:
-    "Personalized console launch checklist generator with printable PDF export.",
+    "Personalized console launch checklist generator with printable PDF export, from NeonGulf.",
   applicationCategory: "LifestyleApplication",
   operatingSystem: "Web",
   offers: {
@@ -92,8 +94,9 @@ const jsonLd = {
     description: "Free interactive checklist with browser print / Save as PDF",
   },
   author: {
-    "@type": "Person",
-    name: "Hamza Akram",
+    "@type": "Organization",
+    name: "NeonGulf",
+    url: "https://neongulf.com",
   },
 };
 

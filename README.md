@@ -1,8 +1,8 @@
 # Launch Prep Kit
 
-Personalized **console launch checklist → printable PDF** web app.
+Personalized **console launch checklist → printable PDF** — a [NeonGulf](https://neongulf.com) product.
 
-**Live:** [https://launch-prep-kit.vercel.app](https://launch-prep-kit.vercel.app)
+**Live:** [https://prep.neongulf.com](https://prep.neongulf.com)
 
 Answer five questions (console, storage, headset, friends, midnight launch). Get a tailored checklist you can tick off in the browser and export via **Print / Save as PDF**.
 
@@ -11,7 +11,7 @@ Answer five questions (console, storage, headset, friends, midnight launch). Get
 - Next.js 15 (App Router) + TypeScript + Tailwind CSS v4
 - Client-side rule engine (`src/lib/checklist.ts`)
 - Browser `window.print()` for PDF export
-- Pay stub: disabled **Unlock PDF — $4.99** (Stripe/Lemon later)
+- Pro PDF unlock waitlist ($4.99 one-time when checkout opens)
 - SEO: Open Graph image, JSON-LD, `robots.ts`, `sitemap.ts`
 
 ## Run locally
@@ -28,13 +28,13 @@ Open [http://localhost:3000](http://localhost:3000).
 - Landing → 5-step wizard (keyboard + auto-advance) → personalized checklist
 - Progress persistence in `localStorage`
 - Print-optimized CSS (letter page, avoid orphan items, print footer)
-- Clear free vs paid unlock stub UX
-- Independent branding — no Rockstar / official game IP
+- Free Print / Save as PDF now; Pro checkout opens soon (waitlist)
+- NeonGulf branding — no Rockstar / official game IP
 
 ## Legal
 
-Independent fan utility by Hamza Akram. Not affiliated with Rockstar Games, Take-Two Interactive, Sony Interactive Entertainment, or Microsoft. No official logos, characters, maps, or assets.
+Independent fan utility from NeonGulf. Not affiliated with Rockstar Games, Take-Two Interactive, Sony Interactive Entertainment, or Microsoft. No official logos, characters, maps, or assets.
 
 ## Deploy
 
-Already on Vercel. Pushing `main` redeploys [launch-prep-kit.vercel.app](https://launch-prep-kit.vercel.app).
+On Vercel at [prep.neongulf.com](https://prep.neongulf.com). Pushing `main` redeploys.

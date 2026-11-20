@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://launch-prep-kit.vercel.app";
+const SITE_URL = "https://prep.neongulf.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
