@@ -38,6 +38,62 @@ body {
   font-family: var(--font-syne), var(--font-body), system-ui, sans-serif;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  border-radius: 9999px;
+  background: #ecfeff;
+  color: #042f2e;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.65rem 1rem;
+  transition: top 160ms ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #67e8f9;
+  outline-offset: 2px;
+}
+
+.notice-error {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(127, 29, 29, 0.35);
+  color: #fecaca;
+  font-size: 0.875rem;
+  padding: 0.65rem 0.85rem;
+}
+
+.notice-warn {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(120, 53, 15, 0.28);
+  color: #fde68a;
+  font-size: 0.875rem;
+  padding: 0.65rem 0.85rem;
+}
+
+.notice-info {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  background: rgba(8, 47, 73, 0.45);
+  color: #cffafe;
+  font-size: 0.875rem;
+  padding: 0.65rem 0.85rem;
+}
+
+.print-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin-top: 1.5rem;
+  padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(4, 11, 18, 0.98), rgba(4, 11, 18, 0.85) 70%, transparent);
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -53,6 +109,12 @@ body {
   cursor: pointer;
   transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
   box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.25), 0 10px 30px rgba(34, 211, 238, 0.18);
+}
+
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid rgba(103, 232, 249, 0.75);
+  outline-offset: 2px;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -281,7 +343,7 @@ body {
 @media print {
   @page {
     size: letter;
-    margin: 0.55in 0.6in;
+    margin: 0.5in 0.55in;
   }
 
   html,
@@ -298,7 +360,9 @@ body {
   }
 
   .print-hidden,
-  .print\:hidden {
+  .print\:hidden,
+  .print-sticky,
+  .skip-link {
     display: none !important;
   }
 
@@ -313,6 +377,12 @@ body {
     padding: 0 !important;
     border-radius: 0 !important;
     backdrop-filter: none !important;
+    max-width: none !important;
+  }
+
+  .checklist-section {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
   }
 
   .print-sheet h2,
@@ -338,14 +408,15 @@ body {
   .checklist-item label {
     border: none !important;
     background: transparent !important;
-    padding: 0.15rem 0 !important;
+    padding: 0.12rem 0 !important;
+    min-height: 0 !important;
   }
 
   .checklist-item input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
-    width: 0.9rem;
-    height: 0.9rem;
+    width: 0.85rem;
+    height: 0.85rem;
     margin-top: 0.2rem;
     border: 1.5px solid #334155;
     border-radius: 0.15rem;
@@ -355,17 +426,20 @@ body {
   }
 
   .checklist-item input[type="checkbox"]:checked {
-    background: #0f766e;
+    background:
+      linear-gradient(#0f766e, #0f766e) padding-box,
+      #0f766e border-box;
     border-color: #0f766e;
   }
 
   .print-footer {
     display: block !important;
-    margin-top: 1.5rem;
-    padding-top: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 0.65rem;
     border-top: 1px solid #e2e8f0;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: #64748b;
+    break-inside: avoid;
   }
 }
 

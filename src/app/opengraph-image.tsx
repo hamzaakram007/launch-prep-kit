@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "NeonGulf Launch Prep Kit — Personalized console launch checklist";
+  "NeonGulf Launch Prep Kit — Get your console checklist PDF";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -16,7 +16,8 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "64px 72px",
-          background: "linear-gradient(145deg, #040b12 0%, #0a1a22 55%, #06251f 100%)",
+          background:
+            "linear-gradient(145deg, #040b12 0%, #0a1a22 55%, #06251f 100%)",
           color: "#e8f4f8",
           fontFamily: "system-ui, sans-serif",
         }}
@@ -36,25 +37,26 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 72,
+              fontSize: 68,
               fontWeight: 800,
               lineHeight: 0.95,
               letterSpacing: "-0.03em",
-              maxWidth: 900,
+              maxWidth: 920,
             }}
           >
-            Your console night, checklist-ready.
+            Get your console checklist PDF.
           </div>
           <div
             style={{
               display: "flex",
-              fontSize: 28,
+              fontSize: 26,
               color: "#94a3b8",
-              maxWidth: 760,
+              maxWidth: 780,
               lineHeight: 1.35,
             }}
           >
-            Five questions → personalized printable prep for PS5 or Xbox.
+            Ten questions → personalized printable prep for storage, TV,
+            headset, house rules, and launch day.
           </div>
         </div>
         <div
@@ -66,7 +68,7 @@ export default function OpenGraphImage() {
             color: "#64748b",
           }}
         >
-          <span>Free checklist · Print / Save as PDF</span>
+          <span>Free · No signup · Print / Save as PDF</span>
           <span>prep.neongulf.com</span>
         </div>
       </div>

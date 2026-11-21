@@ -2,12 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildChecklist, groupByCategory } from "@/lib/checklist";
-import { EMPTY_ANSWERS, PDF_PRICE, type WizardAnswers } from "@/lib/types";
+import {
+  EMPTY_ANSWERS,
+  PDF_PRICE,
+  answersComplete,
+  firstIncompleteStep,
+  isValidChoice,
+  sanitizeAnswers,
+  type StepId,
+  type WizardAnswers,
+} from "@/lib/types";
 
-type StepId = keyof WizardAnswers;
 type Phase = "landing" | "wizard" | "checklist";
 
-const STORAGE_KEY = "launch-prep-kit:v1";
+const STORAGE_KEY = "launch-prep-kit:v2";
 
 const STEPS: {
   id: StepId;
@@ -35,6 +43,16 @@ const STEPS: {
     ],
   },
   {
+    id: "display",
+    title: "TV or display?",
+    subtitle: "Picture setup before the long session.",
+    options: [
+      { value: "tv-4k", label: "4K TV", hint: "HDR / game mode" },
+      { value: "tv-hd", label: "HD TV", hint: "1080p-class screen" },
+      { value: "monitor", label: "Monitor", hint: "Desk / PC display" },
+    ],
+  },
+  {
     id: "headset",
     title: "Audio setup?",
     subtitle: "Story dialogue should stay readable.",
@@ -45,9 +63,49 @@ const STEPS: {
     ],
   },
   {
+    id: "capture",
+    title: "Capturing clips?",
+    subtitle: "Screenshots and video need free space too.",
+    options: [
+      { value: "yes", label: "Yes — I capture", hint: "Clips + screenshots" },
+      { value: "maybe", label: "Maybe", hint: "If a moment hits" },
+      { value: "no", label: "No capture", hint: "Play only" },
+    ],
+  },
+  {
+    id: "access",
+    title: "Accessibility needs?",
+    subtitle: "Comfort settings before launch night.",
+    options: [
+      { value: "none", label: "Defaults are fine", hint: "No special setup" },
+      { value: "captions", label: "Captions / text", hint: "Subtitles matter" },
+      { value: "other", label: "Controls / comfort", hint: "Remap, aim, breaks" },
+    ],
+  },
+  {
+    id: "household",
+    title: "Household rules?",
+    subtitle: "Who shares the room, TV, and quiet hours.",
+    options: [
+      { value: "alone", label: "Mostly alone", hint: "My setup, my rules" },
+      { value: "shared-tv", label: "Shared TV", hint: "Negotiate the screen" },
+      { value: "quiet-hours", label: "Quiet hours", hint: "Keep the volume down" },
+    ],
+  },
+  {
+    id: "spoilers",
+    title: "Spoiler preference?",
+    subtitle: "How locked-down should feeds stay.",
+    options: [
+      { value: "strict", label: "Strict", hint: "Hide everything" },
+      { value: "casual", label: "Casual", hint: "Friends mark spoilers" },
+      { value: "open", label: "Open", hint: "I can handle chatter" },
+    ],
+  },
+  {
     id: "friends",
     title: "Playing with friends?",
-    subtitle: "Set spoiler ground rules before day one.",
+    subtitle: "Set ground rules before day one.",
     options: [
       { value: "solo", label: "Solo", hint: "Just me" },
       { value: "few", label: "A few friends", hint: "2–4 people" },
@@ -56,11 +114,11 @@ const STEPS: {
   },
   {
     id: "midnight",
-    title: "Midnight launch?",
-    subtitle: "Unlock night — are you staying up?",
+    title: "Launch-day plan?",
+    subtitle: "When do you start the first session?",
     options: [
-      { value: "yes", label: "Yes — midnight", hint: "Session starts at unlock" },
-      { value: "maybe", label: "Maybe", hint: "Depends on energy" },
+      { value: "yes", label: "Midnight unlock", hint: "Stay up for it" },
+      { value: "maybe", label: "Flexible", hint: "Depends on energy" },
       { value: "no", label: "Morning start", hint: "Sleep first" },
     ],
   },
@@ -73,8 +131,13 @@ export default function LaunchPrepApp() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [payNotice, setPayNotice] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [storageNotice, setStorageNotice] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [printHint, setPrintHint] = useState(false);
+  const [printError, setPrintError] = useState<string | null>(null);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const continueRef = useRef<HTMLButtonElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const checklistHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   useEffect(() => {
     try {
@@ -83,18 +146,38 @@ export default function LaunchPrepApp() {
         const saved = JSON.parse(raw) as {
           phase?: Phase;
           stepIndex?: number;
-          answers?: WizardAnswers;
+          answers?: unknown;
           checked?: Record<string, boolean>;
         };
-        if (saved.answers) setAnswers({ ...EMPTY_ANSWERS, ...saved.answers });
-        if (typeof saved.stepIndex === "number") setStepIndex(saved.stepIndex);
-        if (saved.checked) setChecked(saved.checked);
-        if (saved.phase === "wizard" || saved.phase === "checklist") {
-          setPhase(saved.phase);
+        const clean = sanitizeAnswers(saved.answers);
+        setAnswers(clean);
+        if (
+          typeof saved.stepIndex === "number" &&
+          saved.stepIndex >= 0 &&
+          saved.stepIndex < STEPS.length
+        ) {
+          setStepIndex(saved.stepIndex);
+        }
+        if (saved.checked && typeof saved.checked === "object") {
+          const safe: Record<string, boolean> = {};
+          for (const [k, v] of Object.entries(saved.checked)) {
+            if (typeof k === "string" && typeof v === "boolean") safe[k] = v;
+          }
+          setChecked(safe);
+        }
+        if (saved.phase === "checklist" && answersComplete(clean)) {
+          setPhase("checklist");
+        } else if (saved.phase === "wizard" || saved.phase === "checklist") {
+          setPhase("wizard");
+          if (saved.phase === "checklist" && !answersComplete(clean)) {
+            setStepIndex(firstIncompleteStep(clean));
+          }
         }
       }
     } catch {
-      /* ignore corrupt storage */
+      setStorageNotice(
+        "Could not restore a saved session. Starting fresh is fine.",
+      );
     }
     setHydrated(true);
   }, []);
@@ -106,8 +189,11 @@ export default function LaunchPrepApp() {
         STORAGE_KEY,
         JSON.stringify({ phase, stepIndex, answers, checked }),
       );
+      setStorageNotice(null);
     } catch {
-      /* quota / private mode */
+      setStorageNotice(
+        "Saving is off in this browser (private mode or full storage). Your checklist still works until you close the tab.",
+      );
     }
   }, [phase, stepIndex, answers, checked, hydrated]);
 
@@ -117,6 +203,16 @@ export default function LaunchPrepApp() {
     };
   }, []);
 
+  useEffect(() => {
+    if (phase !== "wizard") return;
+    headingRef.current?.focus();
+  }, [phase, stepIndex]);
+
+  useEffect(() => {
+    if (phase !== "checklist") return;
+    checklistHeadingRef.current?.focus();
+  }, [phase]);
+
   const items = useMemo(
     () => (phase === "checklist" ? buildChecklist(answers) : []),
     [phase, answers],
@@ -124,6 +220,7 @@ export default function LaunchPrepApp() {
   const grouped = useMemo(() => groupByCategory(items), [items]);
   const doneCount = items.filter((i) => checked[i.id]).length;
   const progressPct = Math.round((doneCount / Math.max(items.length, 1)) * 100);
+  const wizardComplete = answersComplete(answers);
 
   function clearAdvanceTimer() {
     if (advanceTimer.current) {
@@ -132,23 +229,47 @@ export default function LaunchPrepApp() {
     }
   }
 
-  function goNext(fromIndex = stepIndex) {
+  function finishWizard(fromAnswers: WizardAnswers) {
+    if (!answersComplete(fromAnswers)) {
+      setStepError("Answer every question to build your checklist.");
+      setStepIndex(firstIncompleteStep(fromAnswers));
+      setPhase("wizard");
+      return;
+    }
+    setStepError(null);
+    setChecked({});
+    setPrintError(null);
+    setPhase("checklist");
+  }
+
+  function goNext(fromIndex = stepIndex, withAnswers: WizardAnswers = answers) {
     clearAdvanceTimer();
     const step = STEPS[fromIndex];
-    if (!answers[step.id] && fromIndex === stepIndex) return;
+    if (!withAnswers[step.id]) {
+      setStepError("Pick an option to continue.");
+      return;
+    }
+    setStepError(null);
     if (fromIndex < STEPS.length - 1) {
       setStepIndex(fromIndex + 1);
       return;
     }
-    setChecked({});
-    setPhase("checklist");
+    finishWizard(withAnswers);
   }
 
   function selectOption(stepId: StepId, value: string, autoAdvance = true) {
-    setAnswers((prev) => ({
-      ...prev,
-      [stepId]: value as WizardAnswers[StepId],
-    }));
+    if (!isValidChoice(stepId, value)) {
+      setStepError("That option is not valid. Pick one from the list.");
+      return;
+    }
+
+    const nextAnswers = {
+      ...answers,
+      [stepId]: value,
+    } as WizardAnswers;
+
+    setAnswers(nextAnswers);
+    setStepError(null);
 
     if (!autoAdvance || phase !== "wizard") return;
 
@@ -160,14 +281,14 @@ export default function LaunchPrepApp() {
       if (current < STEPS.length - 1) {
         setStepIndex(current + 1);
       } else {
-        setChecked({});
-        setPhase("checklist");
+        finishWizard(nextAnswers);
       }
     }, 280);
   }
 
   function prevStep() {
     clearAdvanceTimer();
+    setStepError(null);
     if (stepIndex === 0) {
       setPhase("landing");
       return;
@@ -181,6 +302,9 @@ export default function LaunchPrepApp() {
     setStepIndex(0);
     setChecked({});
     setPayNotice(false);
+    setStepError(null);
+    setPrintError(null);
+    setPrintHint(false);
     setPhase("wizard");
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -190,7 +314,21 @@ export default function LaunchPrepApp() {
   }
 
   function printChecklist() {
-    window.print();
+    setPrintError(null);
+    setPrintHint(true);
+    try {
+      if (typeof window.print !== "function") {
+        setPrintError(
+          "Print is not available here. Open this page in Safari, Chrome, or Edge, then use Print → Save as PDF.",
+        );
+        return;
+      }
+      window.print();
+    } catch {
+      setPrintError(
+        "Could not open the print dialog. Try again, or use your browser menu: Print → Save as PDF.",
+      );
+    }
   }
 
   function onWaitlistClick() {
@@ -201,7 +339,10 @@ export default function LaunchPrepApp() {
     if (phase !== "wizard") return;
 
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
       const step = STEPS[stepIndex];
@@ -214,6 +355,7 @@ export default function LaunchPrepApp() {
       if (e.key === "Enter") {
         e.preventDefault();
         if (answers[step.id]) goNext();
+        else setStepError("Pick an option to continue.");
         return;
       }
       if (e.key === "Backspace" || e.key === "Escape") {
@@ -230,6 +372,9 @@ export default function LaunchPrepApp() {
   if (phase === "landing") {
     return (
       <main className="relative min-h-screen overflow-hidden">
+        <a href="#main-cta" className="skip-link">
+          Skip to get checklist PDF
+        </a>
         <Atmosphere />
         <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-6 pb-16 pt-10 sm:px-10">
           <header className="flex items-center justify-between">
@@ -246,45 +391,52 @@ export default function LaunchPrepApp() {
               Prep Kit
             </h1>
             <p className="max-w-md text-lg leading-relaxed text-slate-300">
-              Answer five quick questions. Get a personalized console launch
-              checklist you can print as a PDF — from NeonGulf.
+              Ten short questions. One personalized console checklist PDF —
+              storage, TV, headset, house rules, and launch-day plan.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <button
+                id="main-cta"
                 type="button"
                 onClick={() => {
                   setPhase("wizard");
                   setStepIndex(0);
+                  setStepError(null);
                 }}
-                className="btn-primary"
+                className="btn-primary min-h-12 px-6 text-base"
               >
-                Start wizard
+                Get my checklist PDF
               </button>
-              <span className="text-sm text-slate-400">~60 seconds · free web checklist</span>
+              <span className="text-sm text-slate-400">
+                Free · no signup · ~2 minutes
+              </span>
             </div>
             {hydrated && answers.console ? (
               <button
                 type="button"
                 onClick={() => {
-                  const complete = STEPS.every((s) => answers[s.id]);
-                  setPhase(complete ? "checklist" : "wizard");
-                  if (!complete) {
-                    const firstOpen = STEPS.findIndex((s) => !answers[s.id]);
-                    setStepIndex(firstOpen === -1 ? 0 : firstOpen);
+                  if (wizardComplete) {
+                    setPhase("checklist");
+                  } else {
+                    setPhase("wizard");
+                    setStepIndex(firstIncompleteStep(answers));
                   }
                 }}
-                className="btn-ghost w-fit text-sm"
+                className="btn-ghost w-fit min-h-11 text-sm"
               >
-                Resume where you left off
+                {wizardComplete
+                  ? "Open saved checklist"
+                  : "Resume where you left off"}
               </button>
+            ) : null}
+            {storageNotice ? (
+              <p className="notice-warn" role="status">
+                {storageNotice}
+              </p>
             ) : null}
           </section>
 
-          <footer className="mt-auto border-t border-white/10 pt-6 text-xs leading-relaxed text-slate-500">
-            A NeonGulf product. Independent fan utility — not affiliated with Rockstar
-            Games, Take-Two, Sony, or Microsoft. No official game assets. Console-only
-            launch prep.
-          </footer>
+          <SoftFooter />
         </div>
       </main>
     );
@@ -297,6 +449,9 @@ export default function LaunchPrepApp() {
 
     return (
       <main className="relative min-h-screen overflow-hidden">
+        <a href="#wizard-options" className="skip-link">
+          Skip to options
+        </a>
         <Atmosphere />
         <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10 sm:px-10">
           <header className="mb-8 flex items-center justify-between gap-4">
@@ -308,7 +463,7 @@ export default function LaunchPrepApp() {
             </p>
           </header>
 
-          <div className="mb-3 flex items-center gap-1.5" aria-hidden>
+          <div className="mb-3 flex flex-wrap items-center gap-1.5" aria-hidden>
             {STEPS.map((s, i) => (
               <span
                 key={s.id}
@@ -319,17 +474,34 @@ export default function LaunchPrepApp() {
             ))}
           </div>
 
-          <div className="progress-track mb-8" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+          <div
+            className="progress-track mb-8"
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Wizard progress, step ${stepIndex + 1} of ${STEPS.length}`}
+          >
             <div className="progress-fill" style={{ width: `${progress}%` }} />
           </div>
 
           <div key={step.id} className="animate-rise">
-            <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="font-display text-3xl tracking-tight text-white outline-none sm:text-4xl"
+            >
               {step.title}
             </h2>
             <p className="mt-3 text-slate-300">{step.subtitle}</p>
 
-            <div className="mt-8 grid gap-3" role="radiogroup" aria-label={step.title}>
+            <div
+              id="wizard-options"
+              className="mt-8 grid gap-3"
+              role="radiogroup"
+              aria-label={step.title}
+              aria-describedby={stepError ? "step-error" : undefined}
+            >
               {step.options.map((opt, optIndex) => {
                 const selected = currentValue === opt.value;
                 return (
@@ -339,15 +511,19 @@ export default function LaunchPrepApp() {
                     role="radio"
                     aria-checked={selected}
                     onClick={() => selectOption(step.id, opt.value, true)}
-                    className={`wizard-option ${selected ? "is-selected" : ""}`}
+                    className={`wizard-option min-h-14 ${selected ? "is-selected" : ""}`}
                   >
                     <span className="flex min-w-0 items-start">
                       <span className="wizard-option-index" aria-hidden>
                         {optIndex + 1}
                       </span>
                       <span>
-                        <span className="block font-medium text-white">{opt.label}</span>
-                        <span className="mt-1 block text-sm text-slate-400">{opt.hint}</span>
+                        <span className="block font-medium text-white">
+                          {opt.label}
+                        </span>
+                        <span className="mt-1 block text-sm text-slate-400">
+                          {opt.hint}
+                        </span>
                       </span>
                     </span>
                     <span
@@ -362,24 +538,37 @@ export default function LaunchPrepApp() {
                 );
               })}
             </div>
+
+            {stepError ? (
+              <p id="step-error" className="notice-error mt-4" role="alert">
+                {stepError}
+              </p>
+            ) : null}
           </div>
 
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-4 pt-12">
-            <button type="button" onClick={prevStep} className="btn-ghost">
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-4 pt-12 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={prevStep}
+              className="btn-ghost min-h-11"
+            >
               Back
             </button>
             <div className="flex flex-wrap items-center gap-3">
               <span className="kbd-hint print-hidden hidden sm:inline-flex">
-                <kbd>1</kbd>–<kbd>{step.options.length}</kbd> select · <kbd>Enter</kbd> next
+                <kbd>1</kbd>–<kbd>{step.options.length}</kbd> select ·{" "}
+                <kbd>Enter</kbd> next
               </span>
               <button
-                ref={continueRef}
                 type="button"
                 onClick={() => goNext()}
                 disabled={!currentValue}
-                className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
+                aria-disabled={!currentValue}
+                className="btn-primary min-h-11 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {stepIndex === STEPS.length - 1 ? "Build checklist" : "Continue"}
+                {stepIndex === STEPS.length - 1
+                  ? "Build my checklist"
+                  : "Continue"}
               </button>
             </div>
           </div>
@@ -401,15 +590,52 @@ export default function LaunchPrepApp() {
     day: "numeric",
   });
 
+  if (!wizardComplete || items.length === 0) {
+    return (
+      <main className="relative min-h-screen overflow-hidden">
+        <Atmosphere />
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-lg flex-col justify-center px-6 py-16 sm:px-10">
+          <p className="font-display text-sm tracking-[0.22em] text-cyan-200/90 uppercase">
+            NeonGulf · Prep
+          </p>
+          <h2 className="mt-4 font-display text-3xl text-white">
+            Checklist not ready yet
+          </h2>
+          <p className="mt-3 text-slate-300">
+            Answer every wizard question so we can build your personalized
+            printable checklist.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setPhase("wizard");
+              setStepIndex(firstIncompleteStep(answers));
+            }}
+            className="btn-primary mt-8 w-fit min-h-12"
+          >
+            Finish the wizard
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden">
+      <a href="#print-actions" className="skip-link">
+        Skip to save PDF
+      </a>
       <Atmosphere />
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-10 sm:px-10">
         <header className="mb-8 flex flex-wrap items-center justify-between gap-4 print-hidden">
           <p className="font-display text-sm tracking-[0.22em] text-cyan-200/90 uppercase">
             NeonGulf · Prep
           </p>
-          <button type="button" onClick={restart} className="btn-ghost text-sm">
+          <button
+            type="button"
+            onClick={restart}
+            className="btn-ghost min-h-11 text-sm"
+          >
             Start over
           </button>
         </header>
@@ -422,21 +648,36 @@ export default function LaunchPrepApp() {
             <p className="font-display print-accent text-xs tracking-[0.2em] text-cyan-200/80 uppercase">
               Your personalized checklist
             </p>
-            <h2 className="print-ink mt-2 font-display text-3xl tracking-tight text-white sm:text-4xl">
+            <h2
+              ref={checklistHeadingRef}
+              tabIndex={-1}
+              className="print-ink mt-2 font-display text-3xl tracking-tight text-white outline-none sm:text-4xl"
+            >
               {consoleLabel} launch prep
             </h2>
             <p className="print-muted mt-2 text-slate-300">
               <span className="print-hidden">
-                {doneCount} of {items.length} done ({progressPct}%) · tailored from your
-                wizard answers
+                {doneCount} of {items.length} done ({progressPct}%) · tailored
+                from your wizard answers
               </span>
               <span className="print-only">
-                {items.length} items · tailored from your wizard answers · {printedOn}
+                {items.length} items · tailored from your wizard answers ·{" "}
+                {printedOn}
               </span>
             </p>
 
-            <div className="progress-track mt-4 print-hidden" aria-hidden>
-              <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+            <div
+              className="progress-track mt-4 print-hidden"
+              role="progressbar"
+              aria-valuenow={progressPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${doneCount} of ${items.length} checklist items done`}
+            >
+              <div
+                className="progress-fill"
+                style={{ width: `${progressPct}%` }}
+              />
             </div>
 
             <SummaryChips answers={answers} />
@@ -446,9 +687,16 @@ export default function LaunchPrepApp() {
             {Object.entries(grouped).map(([category, catItems]) => {
               const catDone = catItems.filter((i) => checked[i.id]).length;
               return (
-                <section key={category} className="checklist-section">
+                <section
+                  key={category}
+                  className="checklist-section"
+                  aria-labelledby={`cat-${category.replace(/\s+/g, "-")}`}
+                >
                   <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="font-display print-accent text-sm tracking-[0.18em] text-teal-200/90 uppercase">
+                    <h3
+                      id={`cat-${category.replace(/\s+/g, "-")}`}
+                      className="font-display print-accent text-sm tracking-[0.18em] text-teal-200/90 uppercase"
+                    >
                       {category}
                     </h3>
                     <span className="print-hidden text-xs text-slate-500">
@@ -460,7 +708,7 @@ export default function LaunchPrepApp() {
                       const isOn = !!checked[item.id];
                       return (
                         <li key={item.id} className="checklist-item">
-                          <label className="flex cursor-pointer gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-white/10 hover:bg-white/5">
+                          <label className="flex min-h-11 cursor-pointer gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-white/10 hover:bg-white/5">
                             <input
                               type="checkbox"
                               checked={isOn}
@@ -470,7 +718,10 @@ export default function LaunchPrepApp() {
                                   [item.id]: !prev[item.id],
                                 }))
                               }
-                              className="mt-1 h-4 w-4"
+                              className="mt-1 h-5 w-5 shrink-0"
+                              aria-describedby={
+                                item.detail ? `${item.id}-detail` : undefined
+                              }
                             />
                             <span>
                               <span
@@ -483,7 +734,10 @@ export default function LaunchPrepApp() {
                                 {item.label}
                               </span>
                               {item.detail ? (
-                                <span className="print-muted mt-1 block text-sm text-slate-400">
+                                <span
+                                  id={`${item.id}-detail`}
+                                  className="print-muted mt-1 block text-sm text-slate-400"
+                                >
                                   {item.detail}
                                 </span>
                               ) : null}
@@ -499,20 +753,28 @@ export default function LaunchPrepApp() {
           </div>
 
           <div className="print-footer print-only">
-            NeonGulf · Independent fan utility · Not affiliated with Rockstar, Take-Two,
-            Sony, or Microsoft · prep.neongulf.com
+            NeonGulf · Independent fan utility · Not affiliated with Rockstar,
+            Take-Two, Sony, or Microsoft · Original checklist art only ·
+            prep.neongulf.com
           </div>
 
-          <div className="mt-10 space-y-4 border-t border-white/10 pt-6 print-hidden">
+          <div
+            id="print-actions"
+            className="mt-10 space-y-4 border-t border-white/10 pt-6 print-hidden"
+          >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button type="button" onClick={printChecklist} className="btn-primary">
-                Print / Save as PDF
+              <button
+                type="button"
+                onClick={printChecklist}
+                className="btn-primary min-h-12 text-base"
+              >
+                Download PDF checklist
               </button>
               <button
                 type="button"
                 onClick={onWaitlistClick}
                 aria-disabled="true"
-                className="btn-locked"
+                className="btn-locked min-h-12"
                 title="Pro checkout opens soon — join the waitlist"
               >
                 <span
@@ -522,6 +784,31 @@ export default function LaunchPrepApp() {
                 Join waitlist — {PDF_PRICE}
               </button>
             </div>
+
+            {printHint ? (
+              <p className="notice-info" role="status">
+                In the print dialog, choose <strong>Save as PDF</strong> (or
+                “Microsoft Print to PDF”). On iPhone/iPad: Share → Print → tap
+                the share icon → Save to Files.
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">
+                Opens your browser print dialog — pick Save as PDF for a clean
+                one-page checklist.
+              </p>
+            )}
+
+            {printError ? (
+              <p className="notice-error" role="alert">
+                {printError}
+              </p>
+            ) : null}
+
+            {storageNotice ? (
+              <p className="notice-warn" role="status">
+                {storageNotice}
+              </p>
+            ) : null}
 
             <div className="pay-stub animate-fade">
               <div className="flex flex-wrap items-center gap-2">
@@ -537,25 +824,61 @@ export default function LaunchPrepApp() {
               </ul>
               <p className="mt-3 text-xs text-slate-500">
                 Free checklist is ready now: use{" "}
-                <strong className="font-medium text-slate-400">Print / Save as PDF</strong>{" "}
-                in your browser. Pro checkout opens soon — join the waitlist above.
+                <strong className="font-medium text-slate-400">
+                  Download PDF checklist
+                </strong>{" "}
+                above. Pro checkout opens soon — join the waitlist if you want
+                the direct file later.
               </p>
               {payNotice ? (
-                <p className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-100" role="status">
-                  Pro checkout isn&apos;t live yet. You&apos;re on the interest list —
-                  use Print / Save as PDF for your free checklist export today.
+                <p
+                  className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-100"
+                  role="status"
+                >
+                  Pro checkout isn&apos;t live yet. You&apos;re on the interest
+                  list — use Download PDF checklist for your free export today.
                 </p>
               ) : null}
             </div>
           </div>
         </div>
 
-        <footer className="mt-10 border-t border-white/10 pt-6 text-xs leading-relaxed text-slate-500 print-hidden">
-          A NeonGulf product. Independent fan utility — not affiliated with Rockstar
-          Games, Take-Two, Sony, or Microsoft. No official game assets.
-        </footer>
+        <div className="print-sticky print-hidden sm:hidden">
+          <button
+            type="button"
+            onClick={printChecklist}
+            className="btn-primary w-full min-h-12"
+          >
+            Download PDF checklist
+          </button>
+        </div>
+
+        <SoftFooter />
       </div>
     </main>
+  );
+}
+
+function SoftFooter() {
+  return (
+    <footer className="mt-10 border-t border-white/10 pt-6 text-xs leading-relaxed text-slate-500 print-hidden">
+      A{" "}
+      <a
+        href="https://neongulf.com"
+        className="text-slate-400 underline-offset-2 hover:text-cyan-200 hover:underline"
+      >
+        NeonGulf
+      </a>{" "}
+      product. Independent fan utility — not affiliated with Rockstar Games,
+      Take-Two, Sony, or Microsoft. No official game assets. Soft link:{" "}
+      <a
+        href="https://gear.neongulf.com"
+        className="text-slate-400 underline-offset-2 hover:text-cyan-200 hover:underline"
+      >
+        console gear guides
+      </a>
+      .
+    </footer>
   );
 }
 
@@ -566,10 +889,24 @@ function SummaryChips({ answers }: { answers: WizardAnswers }) {
   if (answers.storage === "plenty") chips.push("Storage OK");
   if (answers.storage === "tight") chips.push("Cleanup needed");
   if (answers.storage === "need-ssd") chips.push("Needs SSD");
+  if (answers.display === "tv-4k") chips.push("4K TV");
+  if (answers.display === "tv-hd") chips.push("HD TV");
+  if (answers.display === "monitor") chips.push("Monitor");
   if (answers.headset === "ready") chips.push("Headset ready");
   if (answers.headset === "need-one") chips.push("Needs headset");
   if (answers.headset === "speakers") chips.push("Speakers");
-  if (answers.friends === "solo") chips.push("Solo");
+  if (answers.capture === "yes") chips.push("Capturing");
+  if (answers.capture === "maybe") chips.push("Maybe capture");
+  if (answers.capture === "no") chips.push("No capture");
+  if (answers.access === "captions") chips.push("Captions");
+  if (answers.access === "other") chips.push("Access comfort");
+  if (answers.household === "shared-tv") chips.push("Shared TV");
+  if (answers.household === "quiet-hours") chips.push("Quiet hours");
+  if (answers.household === "alone") chips.push("Solo setup");
+  if (answers.spoilers === "strict") chips.push("Strict spoilers");
+  if (answers.spoilers === "casual") chips.push("Soft spoilers");
+  if (answers.spoilers === "open") chips.push("Open feeds");
+  if (answers.friends === "solo") chips.push("Solo play");
   if (answers.friends === "few") chips.push("Small group");
   if (answers.friends === "crew") chips.push("Crew");
   if (answers.midnight === "yes") chips.push("Midnight");
@@ -577,7 +914,7 @@ function SummaryChips({ answers }: { answers: WizardAnswers }) {
   if (answers.midnight === "no") chips.push("Morning");
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <div className="mt-4 flex flex-wrap gap-2" aria-label="Your answers">
       {chips.map((chip) => (
         <span
           key={chip}
