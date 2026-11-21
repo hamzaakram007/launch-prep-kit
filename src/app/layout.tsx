@@ -1,19 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const SITE_URL = "https://prep.neongulf.com";
 
-const syne = Syne({
+const syne = localFont({
+  src: [
+    { path: "./fonts/Syne-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Syne-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/Syne-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/Syne-800.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
+  src: [
+    { path: "./fonts/DMSans-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/DMSans-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/DMSans-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/DMSans-700.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
