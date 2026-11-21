@@ -1,41 +1,53 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const SITE_URL = "https://prep.neongulf.com";
 
-const syne = Syne({
+const syne = localFont({
+  src: [
+    { path: "./fonts/Syne-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Syne-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/Syne-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/Syne-800.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
+  src: [
+    { path: "./fonts/DMSans-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/DMSans-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/DMSans-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/DMSans-700.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Launch Prep Kit — Personalized console launch checklist | NeonGulf",
+    default:
+      "Launch Prep Kit — Get your console checklist PDF | NeonGulf",
     template: "%s · NeonGulf Launch Prep Kit",
   },
   description:
-    "Answer five quick questions and get a printable, personalized console launch checklist from NeonGulf. Free browser checklist + PDF print. Independent fan utility — no official game assets.",
+    "Answer ten quick questions and download a personalized console launch checklist PDF from NeonGulf. Covers storage, TV/display, headset, household rules, and launch-day plan. Free — no signup.",
   applicationName: "NeonGulf Launch Prep Kit",
   authors: [{ name: "NeonGulf" }],
   creator: "NeonGulf",
   publisher: "NeonGulf",
   keywords: [
     "NeonGulf",
-    "console launch checklist",
-    "PS5 launch prep",
+    "console launch checklist PDF",
+    "PS5 launch prep checklist",
     "Xbox Series launch prep",
     "printable gaming checklist",
     "midnight launch checklist",
-    "console night prep",
+    "console night prep PDF",
+    "TV headset storage checklist",
   ],
   alternates: {
     canonical: "/",
@@ -44,16 +56,16 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "NeonGulf Launch Prep Kit",
-    title: "Launch Prep Kit — Personalized console launch checklist",
+    title: "Get your console launch checklist PDF",
     description:
-      "Five questions. One printable checklist tailored to your console, storage, audio, friends, and midnight plan. From NeonGulf.",
+      "Ten questions → one printable checklist for storage, display, headset, house rules, and launch day. Free from NeonGulf.",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Launch Prep Kit — Personalized console launch checklist | NeonGulf",
+    title: "Get your console launch checklist PDF | NeonGulf",
     description:
-      "Five questions. One printable checklist tailored to your console night.",
+      "Ten questions. One personalized printable checklist. Free — no signup.",
   },
   robots: {
     index: true,

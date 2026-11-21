@@ -4,13 +4,14 @@ Personalized **console launch checklist → printable PDF** — a [NeonGulf](htt
 
 **Live:** [https://prep.neongulf.com](https://prep.neongulf.com)
 
-Answer five questions (console, storage, headset, friends, midnight launch). Get a tailored checklist you can tick off in the browser and export via **Print / Save as PDF**.
+Answer ten questions (console, storage, TV/display, headset, capture, accessibility, household rules, spoilers, friends, launch-day plan). Get a tailored checklist you can tick off in the browser and export via **Download PDF checklist** (Print → Save as PDF).
 
 ## Stack
 
 - Next.js 15 (App Router) + TypeScript + Tailwind CSS v4
-- Client-side rule engine (`src/lib/checklist.ts`)
-- Browser `window.print()` for PDF export
+- Client-side rule engine (`src/lib/checklist.ts`) with answer validation
+- Browser `window.print()` for PDF export + mobile print tips
+- Security headers (`nosniff`, `DENY` frame, referrer, permissions)
 - Pro PDF unlock waitlist ($4.99 one-time when checkout opens)
 - SEO: Open Graph image, JSON-LD, `robots.ts`, `sitemap.ts`
 
@@ -25,11 +26,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Features
 
-- Landing → 5-step wizard (keyboard + auto-advance) → personalized checklist
-- Progress persistence in `localStorage`
-- Print-optimized CSS (letter page, avoid orphan items, print footer)
-- Free Print / Save as PDF now; Pro checkout opens soon (waitlist)
-- NeonGulf branding — no Rockstar / official game IP
+- Landing CTA → 10-step wizard (keyboard + auto-advance) → personalized checklist
+- Progress persistence in `localStorage` (validated schema, v2)
+- Print-optimized CSS (letter page, avoid orphan sections, print footer)
+- Empty / error states for incomplete wizard, print failure, storage quota
+- Soft NeonGulf footer (no affiliate product catalog)
+- No Rockstar / official game IP in UI or PDF art
 
 ## Legal
 
